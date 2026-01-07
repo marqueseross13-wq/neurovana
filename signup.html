@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeroVana | Join the Pathway</title>
+    <link rel="stylesheet" href="style.css"> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <canvas id="neuralCanvas"></canvas>
+
+    <div class="main-wrapper">
+        <header class="branding">
+            <h1>NeroVana</h1>
+            <p>Create your account</p>
+        </header>
+
+        <div class="login-card">
+            <div class="welcome-section">
+    <h2>Begin Your Journey,</h2>
+    <p>Register below to save your progress.</p>
+</div>
+            <form id="registrationForm">
+                <div class="input-container">
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-container">
+                    <input type="password" id="regPassword" placeholder="Create Password" required>
+                </div>
+
+                <button type="submit" class="btn btn-login">Create Account</button>
+                <a href="index.html" class="guest-access">Already have an account? Login</a>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // 1. Initialize Supabase
+        const supabase = supabase.createClient('YOUR_URL', 'YOUR_KEY');
+
+        // 2. Handle Registration
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            const { data, error } = await supabase.auth.signUp({ email, password });
+
+            if (error) {
+                alert("Error: " + error.message);
+            } else {
+                alert("Account created! Check your email for a confirmation link.");
+                window.location.href = 'index.html'; // Send back to login
+            }
+        });
+    </script>
+    <script src="script.js"></script> </body>
+</html>
