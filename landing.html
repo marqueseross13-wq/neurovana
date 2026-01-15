@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroVana | Landing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { 
+            width: 100%; height: 100%; overflow: hidden; 
+            font-family: sans-serif; 
+        }
+        
+        /* YOUR LAVENDER PNG BACKGROUND */
+        .hero-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://neurovana.free.nf/assets/image.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            z-index: -3;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
+        }
+        
+        .lavender-field {
+            display: none;
+        }
+        
+        .mist {
+            display: none;
+        }
+        
+        #flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .top-brand {
+            position: absolute;
+            top: 8%;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 1rem;
+            letter-spacing: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0;
+            transition: 2s ease;
+            text-shadow: 0 4px 10px rgba(107, 79, 138, 0.8);
+        }
+        
+        .main-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 40px;
+            padding: 60px 40px;
+            text-align: center;
+            color: white;
+            width: 90%;
+            max-width: 500px;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: 2s ease;
+            box-shadow: 0 8px 32px rgba(107, 79, 138, 0.4);
+        }
+        
+        .glass-card h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-record {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            padding: 18px 50px;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 25px;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .btn-record:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.6);
+        }
+        
+        .active { opacity: 1 !important; transform: scale(1) !important; }
+        .flash-anim { animation: flash-fade 1.5s forwards; }
+        @keyframes flash-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+    </style>
+</head>
+<body>
+    <div id="flash"></div>
+    <div class="hero-bg" id="bg"></div>
+    <div class="lavender-field" id="field"></div>
+    <div class="mist" id="mist"></div>
+    <div class="top-brand" id="topText">Welcome to NEUROVANA</div>
+    <div class="main-container">
+        <div class="glass-card" id="card">
+            <h1>Start your first pathway</h1>
+            <p style="margin-top:10px; opacity:0.9;">Record your affirmations</p>
+            <a href="#" class="btn-record">Start Recording</a>
+        </div>
+    </div>
+    <script>
+        window.onload = () => {
+            // Sequence Start
+            document.getElementById('flash').classList.add('flash-anim');
+            
+            // Fades in the background layers
+            setTimeout(() => { 
+                document.getElementById('bg').classList.add('active'); 
+            }, 400);
+            setTimeout(() => { 
+                document.getElementById('field').classList.add('active'); 
+            }, 700);
+            setTimeout(() => { 
+                document.getElementById('mist').classList.add('active'); 
+            }, 1000);
+            // Fades in "Welcome"
+            setTimeout(() => { 
+                document.getElementById('topText').classList.add('active'); 
+            }, 1800);
+            // Fades in the Card
+            setTimeout(() => { 
+                document.getElementById('card').classList.add('active'); 
+            }, 3500);
+        };
+    </script>
+</body>
+</html>

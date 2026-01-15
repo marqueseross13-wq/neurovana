@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroVana | The Gateway</title>
+    <style>
+        :root {
+            --primary-purple: #8b5cf6;
+            --deep-bg: #18143c;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--deep-bg);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Ambient Background */
+        .bg-gradient {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, #2d1b69 0%, #1a1548 100%);
+            z-index: -1;
+        }
+
+        /* The Gateway Container */
+        .gateway-container {
+            text-align: center;
+            z-index: 10;
+            transition: opacity 1s ease, transform 1.5s ease;
+        }
+
+        h1 {
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5rem;
+            margin-bottom: 3rem;
+            color: rgba(255, 255, 255, 0.6);
+            animation: fadeIn 3s ease;
+        }
+
+        /* The Interactive Gate */
+        .neural-gate {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+        }
+
+        .inner-glow {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-purple);
+            border-radius: 50%;
+            filter: blur(10px);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        .neural-gate:hover {
+            border-color: var(--primary-purple);
+            box-shadow: 0 0 50px rgba(139, 92, 246, 0.4);
+            transform: scale(1.05);
+        }
+
+        .gate-text {
+            position: absolute;
+            bottom: -60px;
+            width: 100%;
+            font-size: 0.9rem;
+            color: var(--primary-purple);
+            opacity: 0.5;
+            transition: opacity 0.3s;
+        }
+
+        .neural-gate:hover .gate-text {
+            opacity: 1;
+        }
+
+        /* Entry Animation State */
+        .entering {
+            transform: scale(20);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.8); opacity: 0.8; box-shadow: 0 0 30px var(--primary-purple); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Floating particles background */
+        #particleCanvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-gradient"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="gateway-container" id="gatewayUI">
+        <h1>Enter Your Peace</h1>
+        
+        <div class="neural-gate" onclick="enterNeurovana()">
+            <div class="inner-glow"></div>
+            <div class="gate-text">TAP TO ENTER</div>
+        </div>
+    </div>
+
+    <script>
+        // Simple ambient particle background
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedY = Math.random() * -0.5;
+            }
+            update() {
+                this.y += this.speedY;
+                if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(167, 139, 250, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for(let i=0; i<50; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // The "Enter" Logic
+        function enterNeurovana() {
+            const ui = document.getElementById('gatewayUI');
+            ui.classList.add('entering');
+            
+            // Short delay to let the zoom animation finish
+            setTimeout(() => {
+                window.location.href = 'landing.html'; 
+            }, 800);
+        }
+    </script>
+</body>
+</html>
