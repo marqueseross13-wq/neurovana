@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroVana | Landing</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body, html { 
+            width: 100%; height: 100%; overflow: hidden; 
+            font-family: sans-serif; 
+        }
+        
+        /* PRESERVED: YOUR ORIGINAL BACKGROUND LAYERS */
+        .hero-bg {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://neurovana.free.nf/assets/image.png');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: cover;
+            z-index: -3;
+            opacity: 0;
+            transition: opacity 2.5s ease-in-out;
+        }
+        
+        .lavender-field { display: none; }
+        .mist { display: none; }
+        
+        #flash {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0;
+        }
+        
+        .top-brand {
+            position: absolute;
+            top: 8%;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 1rem;
+            letter-spacing: 0.7rem;
+            text-transform: uppercase;
+            opacity: 0;
+            transition: 2s ease;
+            text-shadow: 0 4px 10px rgba(107, 79, 138, 0.8);
+        }
+        
+        .main-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* PRESERVED: YOUR GLASS CARD DESIGN */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 40px;
+            padding: 60px 40px;
+            text-align: center;
+            color: white;
+            width: 90%;
+            max-width: 500px;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: 2s ease, opacity 0.5s ease; /* Added opacity transition for content swaps */
+            box-shadow: 0 8px 32px rgba(107, 79, 138, 0.4);
+        }
+        
+        .glass-card h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-record {
+            background: linear-gradient(90deg, #a855f7, #ec4899);
+            padding: 18px 50px;
+            border-radius: 50px;
+            color: white;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 25px;
+            font-weight: bold;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+        
+        .btn-record:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.6);
+        }
+
+        /* NEW: RECORDING ANIMATIONS */
+        .pulse-ring {
+            width: 40px;
+            height: 40px;
+            background: #ff4b2b;
+            border-radius: 50%;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 20px rgba(255, 75, 43, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
+        }
+
+        audio {
+            width: 100%;
+            margin: 20px 0;
+            filter: invert(1) hue-rotate(180deg);
+        }
+        
+        .active { opacity: 1 !important; transform: scale(1) !important; }
+        .flash-anim { animation: flash-fade 1.5s forwards; }
+        @keyframes flash-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        /* Wrapper to manage transitions inside the card */
+        #cardContent {
+            transition: opacity 0.4s ease;
+        }
+    </style>
+</head>
+<body>
+<div id="flash"></div>
+<div class="hero-bg" id="bg"></div>
+<div class="lavender-field" id="field"></div>
+<div class="mist" id="mist"></div>
+<div class="top-brand" id="topText">Welcome to NEUROVANA</div>
+<div class="main-container">
+<div class="glass-card" id="card">
+<div id="cardContent">
+<h1>Start your first pathway</h1>
+<p style="margin-top: 10px; opacity: 0.9;">Record or type your affirmations</p>
+<button class="btn-record" onclick="switchToMic()">Record with Mic</button> <button class="btn-record" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.6); margin-top: 12px;" onclick="switchToText()"> Type Instead </button></div>
+</div>
+</div>
+<p>
+<script>
+        // PRESERVED: INTRO ANIMATION LOGIC
+        window.onload = () => {
+            document.getElementById('flash').classList.add('flash-anim');
+            
+            setTimeout(() => { 
+                document.getElementById('bg').classList.add('active'); 
+            }, 400);
+            setTimeout(() => { 
+                document.getElementById('field').classList.add('active'); 
+            }, 700);
+            setTimeout(() => { 
+                document.getElementById('mist').classList.add('active'); 
+            }, 1000);
+            setTimeout(() => { 
+                document.getElementById('topText').classList.add('active'); 
+            }, 1800);
+            setTimeout(() => { 
+                document.getElementById('card').classList.add('active'); 
+            }, 2500);
+        };
+
+        // NEW: MICROPHONE & PLAYBACK LOGIC
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function switchToMic() {
+            const card = document.getElementById('cardContent');
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                card.innerHTML = `
+                    <h1>Voice Capture</h1>
+                    <div style="height: 80px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">
+                        <div class="pulse-ring" id="pulse" style="display:none;"></div>
+                        <span id="micIcon" style="font-size: 2.5rem;">🎙️</span>
+                    </div>
+                    <p id="micStatus">Ready to capture your voice</p>
+                    <button class="btn-record" id="micBtn" onclick="handleToggleMic()">Start Microphone</button>
+                    <p style="margin-top: 20px; cursor: pointer; opacity: 0.5; font-size: 0.9rem;" onclick="location.reload()">Cancel</p>
+                `;
+                card.style.opacity = '1';
+            }, 400);
+        }
+
+        async function handleToggleMic() {
+            const btn = document.getElementById('micBtn');
+            const pulse = document.getElementById('pulse');
+            const icon = document.getElementById('micIcon');
+            const status = document.getElementById('micStatus');
+
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/wav' });
+                        showPlaybackUI(blob);
+                    };
+
+                    mediaRecorder.start();
+                    btn.innerText = "Stop & Review";
+                    btn.style.background = "#ff4b2b"; // Alert red
+                    pulse.style.display = "block";
+                    icon.style.display = "none";
+                    status.innerText = "Listening... Speak clearly";
+                } catch (err) {
+                    alert("Microphone access denied. Please allow mic access in your browser settings.");
+                }
+            } else {
+                mediaRecorder.stop();
+            }
+        }
+
+        function showPlaybackUI(blob) {
+            const card = document.getElementById('cardContent');
+            const audioUrl = URL.createObjectURL(blob);
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                card.innerHTML = `
+                    <h1>Review Pathway</h1>
+                    <p>Listen back to your affirmation:</p>
+                    <audio controls src="${audioUrl}"></audio>
+                    <button class="btn-record" style="background: #22c55e; margin-top: 5px;" onclick=" window.location.href='home.html'">Yes, it's perfect</button>
+                    <button class="btn-record" style="background: rgba(255,255,255,0.1); border: 1px solid white; margin-top: 10px;" onclick="switchToMic()">No, try again</button>
+                `;
+                card.style.opacity = '1';
+            }, 400);
+            
+        }
+        
+        function switchToText() {
+  const card = document.getElementById('cardContent');
+  card.style.opacity = '0';
+
+  setTimeout(() => {
+    card.innerHTML = `
+      <h1>Type Affirmation</h1>
+      <p style="opacity:0.9; margin-top:10px;">No mic needed. Write it out here:</p>
+
+      <textarea id="typedAffirmation"
+        placeholder="I am calm. I am focused. I am becoming my best self..."
+        style="width:100%; min-height:120px; margin-top:14px; padding:14px; border-radius:14px;
+        border:1px solid rgba(255,255,255,0.25);
+        background:rgba(0,0,0,0.25); color:white; outline:none; resize:none;"></textarea>
+
+      <button class="btn-record"
+        style="background:#22c55e; margin-top:14px;"
+        onclick="saveTypedAffirmation()">
+        Save & Continue
+      </button>
+
+      <button class="btn-record"
+        style="background: rgba(255,255,255,0.1); border: 1px solid white; margin-top: 10px;"
+        onclick="location.reload()">
+        Back
+      </button>
+    `;
+    card.style.opacity = '1';
+  }, 400);
+}
+
+async function saveTypedAffirmation() {
+  const text = document.getElementById("typedAffirmation")?.value?.trim();
+  if (!text) {
+    alert("Please type an affirmation first.");
+    return;
+  }
+
+  const supabaseClient = window.supabaseClient;
+
+  if (!supabaseClient) {
+    alert("Supabase not loaded on this page. Make sure supabase.js is included.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("affirmations")
+    .insert([{ type: "text", content: text }]);
+
+  if (error) {
+    alert("Save failed: " + error.message);
+    return;
+  }
+
+  window.location.href = "home.html";
+} 
+    </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase.js"></script>
+<script>
+  // everything for landing.html here (switchToMic, switchToText, saveTypedAffirmation, etc.)
+  console.log("window.supabaseClient:", window.supabaseClient);
+        
+    </script>
+</p>
+</body>
+</html>

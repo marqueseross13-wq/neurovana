@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeroVana | Join the Pathway</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <canvas id="neuralCanvas"></canvas>
+
+    <div class="main-wrapper">
+        <header class="branding">
+            <h1>NeroVana</h1>
+            <p>Create your account</p>
+        </header>
+
+        <div class="login-card">
+            <div class="welcome-section">
+                <h2>Begin Your Journey,</h2>
+                <p>Register below to save your progress.</p>
+            </div>
+            
+            <form id="registrationForm">
+                <div class="input-container">
+                    <input type="email" id="regEmail" placeholder="Email Address" required>
+                </div>
+                <div class="input-container">
+                    <input type="password" id="regPassword" placeholder="Create Password" required>
+                </div>
+
+                <button type="submit" class="btn btn-login">Create Account</button>
+                <a href="index.html" class="guest-access">Already have an account? Login</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load Supabase FIRST -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Signup Script -->
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const supabaseUrl = 'https://gwrlbqjpjlhdkpgprlxy.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg'; //
+
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(supabaseUrl, supabaseKey);
+
+        // ============================================
+        // HANDLE REGISTRATION
+        // ============================================
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+
+            console.log('Attempting signup with:', email); // Debug log
+
+            const { data, error } = await supabaseClient.auth.signUp({ 
+                email, 
+                password 
+            });
+
+            if (error) {
+                console.error('Signup error:', error); // Debug log
+                alert("Error: " + error.message);
+            } else {
+                console.log('Signup success:', data); // Debug log
+                alert("Account created! Check your email for a confirmation link.");
+                window.location.href = 'loading.html';
+            }
+        });
+    </script>
+</body>
+</html>
