@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neurovana • Talk to VANA</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#070514;
+      --bg2:#0b0920;
+      --card:rgba(255,255,255,.07);
+      --card2:rgba(255,255,255,.05);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#8B5CF6;
+      --good:#22C55E;
+      --shadow:0 18px 60px rgba(0,0,0,.52);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 15%, rgba(139,92,246,.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 25%, rgba(34,197,94,.14), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    .wrap{ max-width: 980px; margin:0 auto; padding: 18px; }
+
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding: 14px 16px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand{ display:flex; flex-direction:column; gap:3px; }
+    .brand .t{ font-size:16px; letter-spacing:.2px; }
+    .brand .s{ font-size:12px; color:var(--muted); }
+
+    .right{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
+      font-size:13px;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(139,92,246,.42);
+      background: linear-gradient(180deg, rgba(139,92,246,.30), rgba(139,92,246,.12));
+    }
+    .btn.good{
+      border-color: rgba(34,197,94,.35);
+      background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.10));
+    }
+
+    .card{
+      margin-top: 14px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding: 14px 16px 10px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .cardHead h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .cardHead p{ margin:6px 0 0 0; font-size:12px; color:var(--muted); line-height:1.35; }
+
+    .cardBody{ padding: 12px 16px 16px 16px; }
+
+    .authBox{
+      margin-top: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 12px;
+      display:none;
+    }
+    .authBox.show{ display:block; }
+    .authRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .authRow input{ flex:1; min-width: 220px; }
+
+    input, textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{ min-height: 90px; resize: vertical; line-height:1.45; }
+
+    .chat{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height: 55vh;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .bubble{
+      max-width: 85%;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 10px 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .me{ align-self:flex-end; border-color: rgba(139,92,246,.30); }
+    .vana{ align-self:flex-start; border-color: rgba(34,197,94,.30); }
+
+    .composer{
+      margin-top: 12px;
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+      flex-wrap:wrap;
+    }
+    .composer textarea{ flex:1; min-width: 260px; }
+    .smallNote{ font-size:12px; color:rgba(255,255,255,.55); margin-top:10px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="t">Talk to VANA</div>
+        <div class="s">A kind, supportive reflection partner</div>
+      </div>
+
+      <div class="right">
+        <div class="pill" id="sessionPill">Checking session…</div>
+        <button class="btn" onclick="location.href='home.html'">← Home</button>
+        <button class="btn primary" id="logoutBtn" style="display:none;">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Auth (magic link) -->
+    <div class="authBox" id="authBox">
+      <div class="authRow">
+        <input id="email" type="email" placeholder="Enter your email to sign in (magic link)" />
+        <button class="btn good" id="magicBtn">Send Magic Link</button>
+      </div>
+      <div class="smallNote">
+        We use sign-in so your chat can be protected and (later) saved to your account.
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="cardHead">
+        <h2>VANA</h2>
+        <p>Supportive conversation + gentle mental wellness guidance. Not a replacement for a licensed professional.</p>
+      </div>
+
+      <div class="cardBody">
+        <div class="chat" id="chat"></div>
+
+        <div class="composer">
+          <textarea id="msg" placeholder="Tell VANA what's on your mind…"></textarea>
+          <button class="btn good" id="sendBtn">Send</button>
+        </div>
+
+        <div class="smallNote">
+          If you feel in danger or might hurt yourself, call your local emergency number. In the U.S., you can call or text <b>988</b>.
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // TODO: Replace with your real values (same as journal.html)
+    const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg ";
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const $ = (id) => document.getElementById(id);
+    const chatEl = $("chat");
+    const msgEl = $("msg");
+
+    let user = null;
+
+    function setPill(t){ $("sessionPill").textContent = t; }
+
+    function addBubble(text, who){
+      const div = document.createElement("div");
+      div.className = "bubble " + (who === "me" ? "me" : "vana");
+      div.textContent = text;
+      chatEl.appendChild(div);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function refreshSession(){
+      const { data } = await supabaseClient.auth.getSession();
+      user = data?.session?.user || null;
+
+      if(!user){
+        setPill("Not signed in");
+        $("authBox").classList.add("show");
+        $("logoutBtn").style.display = "none";
+        return;
+      }
+
+      setPill("Signed in as " + (user.email || "user"));
+      $("authBox").classList.remove("show");
+      $("logoutBtn").style.display = "inline-block";
+    }
+
+    $("magicBtn").addEventListener("click", async () => {
+      const email = $("email").value.trim();
+      if(!email) return alert("Enter your email.");
+
+      setPill("Sending magic link…");
+      const { error } = await supabaseClient.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: window.location.href }
+      });
+
+      if(error){
+        console.error(error);
+        setPill("Error sending link");
+        return alert(error.message);
+      }
+
+      setPill("Link sent ✅ Check your email");
+      alert("Magic link sent! Open your email and click the link to sign in.");
+    });
+
+    $("logoutBtn").addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+      await refreshSession();
+    });
+
+    async function sendMessage(){
+      const text = msgEl.value.trim();
+      if(!text) return;
+
+      if(!user){
+        return alert("Sign in first to chat with VANA.");
+      }
+
+      addBubble(text, "me");
+      msgEl.value = "";
+      $("sendBtn").disabled = true;
+
+      try{
+        // Send to Supabase Edge Function (safe place to use your OpenAI key)
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const token = sessionData?.session?.access_token;
+
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/vana-chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ message: text })
+        });
+
+        const out = await res.json();
+        if(!res.ok){
+          console.error(out);
+          addBubble("I’m having trouble right now. Try again in a moment.", "vana");
+        } else {
+          addBubble(out.reply || "I’m here with you. Tell me more.", "vana");
+        }
+      } catch (e){
+        console.error(e);
+        addBubble("Something went wrong connecting to VANA. Please refresh and try again.", "vana");
+      } finally {
+        $("sendBtn").disabled = false;
+      }
+    }
+
+    $("sendBtn").addEventListener("click", sendMessage);
+    msgEl.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // welcome message
+    addBubble("Hi, I’m VANA 💜 I’m here to support you. What’s on your mind today?", "vana");
+
+    // init
+    refreshSession();
+    supabaseClient.auth.onAuthStateChange(refreshSession);
+  </script>
+</body>
+</html>
