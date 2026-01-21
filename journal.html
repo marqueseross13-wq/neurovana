@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neurovana • Journal</title>
+
+  <!-- Supabase CDN only - NO supabase.js file -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+  <style>
+    :root{
+      --bg1:#070514;
+      --bg2:#0b0920;
+      --card:rgba(255,255,255,.07);
+      --card2:rgba(255,255,255,.05);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --muted2:rgba(255,255,255,.45);
+      --accent:#8B5CF6;
+      --good:#22C55E;
+      --danger:#EF4444;
+      --shadow:0 18px 60px rgba(0,0,0,.52);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 15%, rgba(139,92,246,.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 25%, rgba(34,197,94,.14), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    .wrap{ max-width: 1180px; margin:0 auto; padding: 18px; }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .brand .t{ font-size:16px; letter-spacing:.2px; }
+    .brand .s{ font-size:12px; color:var(--muted); }
+
+    .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease, border-color .2s ease;
+      font-size:13px;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity: 0.5; cursor: not-allowed; }
+    .btn.good{
+      border-color: rgba(34,197,94,.35);
+      background: linear-gradient(180deg, rgba(34,197,94,.28), rgba(34,197,94,.10));
+    }
+    .btn.primary{
+      border-color: rgba(139,92,246,.42);
+      background: linear-gradient(180deg, rgba(139,92,246,.30), rgba(139,92,246,.12));
+    }
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.08));
+    }
+
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1fr 1fr;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding: 14px 16px 10px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .cardHead h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .cardHead p{ margin:6px 0 0 0; font-size:12px; color:var(--muted); line-height:1.35; }
+
+    .cardBody{ padding: 12px 16px 16px 16px; }
+
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin: 10px 0 6px;
+    }
+    input, textarea, select{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    textarea{ min-height: 120px; resize: vertical; line-height:1.45; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    @media (max-width:600px){ .row{ grid-template-columns: 1fr; } }
+
+    .actions{
+      margin-top: 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .list{
+      margin-top:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height: 320px;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .item{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 10px 12px;
+      transition: background 0.2s ease;
+    }
+    .item:hover{ background: rgba(0,0,0,.25); }
+    .item .meta{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:11px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    .item .txt{
+      font-size:12.5px;
+      line-height:1.45;
+      white-space: pre-wrap;
+    }
+
+    .smallNote{ font-size:12px; color:var(--muted2); margin-top:8px; }
+
+    .authBox{
+      margin-top: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 12px;
+      display:none;
+    }
+    .authBox.show{ display:block; }
+    .authRow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .authRow input{ flex:1; min-width: 220px; }
+
+    /* Success animation */
+    @keyframes successPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .success-flash {
+      animation: successPulse 0.5s ease;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="t">Journal</div>
+        <div class="s">Daily entry + thought mapping • saved to your account</div>
+      </div>
+
+      <div class="right">
+        <div class="pill" id="sessionPill">Checking session…</div>
+        <button class="btn" onclick="location.href='home.html'">← Home</button>
+        <button class="btn primary" id="logoutBtn" style="display:none;">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Auth -->
+    <div class="authBox" id="authBox">
+      <div class="authRow">
+        <input id="email" type="email" placeholder="Enter your email to sign in (magic link)" />
+        <button class="btn good" id="magicBtn">Send Magic Link</button>
+      </div>
+      <div class="smallNote">
+        We'll email you a sign-in link. Open it on this device to sync your journal across devices.
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- DAILY JOURNAL -->
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2>Daily Journal Entry</h2>
+            <p>Date + free writing. Save it, and come back anytime.</p>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <label>Date</label>
+          <input id="entryDate" type="date" />
+
+          <label>Today's entry</label>
+          <textarea id="entryText" placeholder="What happened today? What do you need? What are you proud of?"></textarea>
+
+          <div class="actions">
+            <button class="btn good" id="saveDailyBtn">Save Daily Entry</button>
+            <button class="btn" id="loadDailyBtn">Load This Date</button>
+            <button class="btn danger" id="deleteDailyBtn">Delete This Date</button>
+          </div>
+
+          <div class="smallNote" id="dailyStatus"></div>
+
+          <div style="margin-top:14px;">
+            <label>Recent daily entries</label>
+            <div class="list" id="dailyList"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- THOUGHT MAP -->
+      <section class="card">
+        <div class="cardHead">
+          <div>
+            <h2>Thought Map</h2>
+            <p>Dump → story → reframe → next step. Save each map and revisit later.</p>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <label>Brain dump</label>
+          <textarea id="dump" placeholder="Write exactly what's in your mind…"></textarea>
+
+          <div class="row">
+            <div>
+              <label>Emotion</label>
+              <select id="emotion">
+                <option>Anxious</option>
+                <option>Overwhelmed</option>
+                <option>Sad</option>
+                <option>Angry</option>
+                <option>Tired</option>
+                <option>Motivated</option>
+                <option>Grateful</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div>
+              <label>Intensity (1–10)</label>
+              <input id="intensity" type="number" min="1" max="10" value="6" />
+            </div>
+          </div>
+
+          <label>The story your mind is telling</label>
+          <textarea id="story" placeholder="Example: "If I don't do this perfectly, I'll fail.""></textarea>
+
+          <label>Reframe (kinder, truer thought)</label>
+          <textarea id="reframe" placeholder="Example: "I can take this one step at a time.""></textarea>
+
+          <label>Next action (10 minutes or less)</label>
+          <input id="action" placeholder="Example: drink water + write 3 priorities" />
+
+          <div class="actions">
+            <button class="btn good" id="saveMapBtn">Save Thought Map</button>
+            <button class="btn" id="clearMapBtn">Clear Fields</button>
+            <button class="btn" id="exportMapBtn">Export Current Map</button>
+          </div>
+
+          <div class="smallNote" id="mapStatus"></div>
+
+          <div style="margin-top:14px;">
+            <label>Saved thought maps</label>
+            <div class="list" id="mapList"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Supabase directly in this file
+    const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg";
+    
+    let supabaseClient = null;
+    let user = null;
+
+    const $ = (id) => document.getElementById(id);
+
+    function setPill(text){ $("sessionPill").textContent = text; }
+    
+    function todayISODate(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+    
+    function escapeHtml(s){
+      return (s || "")
+        .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;").replaceAll("'","&#039;");
+    }
+    
+    function fmtWhen(iso){
+      try{ return new Date(iso).toLocaleString(); } catch { return iso; }
+    }
+
+    function showStatus(elementId, message, isSuccess = true) {
+      const el = $(elementId);
+      el.textContent = message;
+      if (isSuccess) {
+        el.classList.add('success-flash');
+        setTimeout(() => el.classList.remove('success-flash'), 500);
+      }
+    }
+
+    // ==================== AUTH ====================
+    async function refreshSession() {
+      if (!supabaseClient) {
+        console.error("Supabase client not initialized yet");
+        return;
+      }
+
+      const { data } = await supabaseClient.auth.getSession();
+      console.log("SESSION CHECK:", data);
+
+      user = data?.session?.user || null;
+
+      if (!user) {
+        setPill("Not signed in");
+        $("authBox").classList.add("show");
+        $("logoutBtn").style.display = "none";
+        $("dailyList").innerHTML = "";
+        $("mapList").innerHTML = "";
+        return;
+      }
+
+      setPill("Signed in as " + (user.email || "user"));
+      $("authBox").classList.remove("show");
+      $("logoutBtn").style.display = "inline-block";
+      await loadDailyRecent();
+      await loadMaps();
+    }
+
+    $("magicBtn").addEventListener("click", async () => {
+      const email = $("email").value.trim();
+      if(!email) return alert("Enter your email.");
+      
+      if (!supabaseClient) {
+        alert("Supabase not loaded. Please refresh the page.");
+        return;
+      }
+      
+      setPill("Sending magic link…");
+
+      const { error } = await supabaseClient.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.href
+        }
+      });
+
+      if(error){
+        console.error(error);
+        setPill("Error sending link");
+        return alert(error.message);
+      }
+
+      setPill("Link sent ✅ Check your email");
+      alert("Magic link sent! Open your email and click the link to sign in.");
+    });
+
+    $("logoutBtn").addEventListener("click", async () => {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      await refreshSession();
+    });
+
+    // ==================== DAILY JOURNAL ====================
+    $("entryDate").value = todayISODate();
+    $("saveDailyBtn").addEventListener("click", saveDailyEntry);
+    $("loadDailyBtn").addEventListener("click", loadDailyByDate);
+    $("deleteDailyBtn").addEventListener("click", deleteDailyByDate);
+
+    async function saveDailyEntry(){
+      if(!user) return alert("Sign in first to save your journal.");
+      const entry_date = $("entryDate").value;
+      const content = $("entryText").value.trim();
+      if(!entry_date) return alert("Pick a date.");
+      if(!content) return alert("Write something first.");
+
+      showStatus("dailyStatus", "Saving…", false);
+
+      const { error } = await supabaseClient
+        .from("journal_entries")
+        .upsert({ user_id: user.id, entry_date, content }, { onConflict: "user_id,entry_date" });
+
+      if(error){
+        console.error(error);
+        showStatus("dailyStatus", "Error saving.", false);
+        return alert(error.message);
+      }
+
+      showStatus("dailyStatus", "Saved ✅");
+      await loadDailyRecent();
+    }
+
+    async function loadDailyByDate(){
+      if(!user) return alert("Sign in first.");
+      const entry_date = $("entryDate").value;
+      showStatus("dailyStatus", "Loading…", false);
+
+      const { data, error } = await supabaseClient
+        .from("journal_entries")
+        .select("content")
+        .eq("user_id", user.id)
+        .eq("entry_date", entry_date)
+        .maybeSingle();
+
+      if(error){
+        console.error(error);
+        showStatus("dailyStatus", "Error loading.", false);
+        return alert(error.message);
+      }
+
+      $("entryText").value = data?.content || "";
+      showStatus("dailyStatus", data ? "Loaded ✅" : "No entry saved for this date.");
+    }
+
+    async function deleteDailyByDate(){
+      if(!user) return alert("Sign in first.");
+      const entry_date = $("entryDate").value;
+      const ok = confirm(`Delete your entry for ${entry_date}?`);
+      if(!ok) return;
+
+      showStatus("dailyStatus", "Deleting…", false);
+
+      const { error } = await supabaseClient
+        .from("journal_entries")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("entry_date", entry_date);
+
+      if(error){
+        console.error(error);
+        showStatus("dailyStatus", "Error deleting.", false);
+        return alert(error.message);
+      }
+
+      $("entryText").value = "";
+      showStatus("dailyStatus", "Deleted ✅");
+      await loadDailyRecent();
+    }
+
+    async function loadDailyRecent(){
+      if(!user) return;
+
+      const { data, error } = await supabaseClient
+        .from("journal_entries")
+        .select("entry_date, content, updated_at, created_at")
+        .eq("user_id", user.id)
+        .order("entry_date", { ascending: false })
+        .limit(10);
+
+      if(error){
+        console.error(error);
+        return;
+      }
+
+      const el = $("dailyList");
+      el.innerHTML = "";
+
+      if(!data || data.length === 0){
+        el.innerHTML = `<div class="item"><div class="meta"><span>No entries yet</span></div><div class="txt">Save your first daily journal entry.</div></div>`;
+        return;
+      }
+
+      for(const row of data){
+        const when = row.updated_at || row.created_at;
+        const preview = (row.content || "").slice(0, 160);
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div class="meta">
+            <span>${escapeHtml(row.entry_date)}</span>
+            <span>${escapeHtml(fmtWhen(when))}</span>
+          </div>
+          <div class="txt">${escapeHtml(preview)}${row.content.length>160 ? "…" : ""}</div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" data-load="${row.entry_date}">Load</button>
+          </div>
+        `;
+        div.querySelector("[data-load]").addEventListener("click", async () => {
+          $("entryDate").value = row.entry_date;
+          await loadDailyByDate();
+        });
+        el.appendChild(div);
+      }
+    }
+
+    // ==================== THOUGHT MAPS ====================
+    $("saveMapBtn").addEventListener("click", saveMap);
+    $("clearMapBtn").addEventListener("click", clearMapFields);
+    $("exportMapBtn").addEventListener("click", exportCurrentMap);
+
+    function clearMapFields(){
+      $("dump").value = "";
+      $("emotion").value = "Anxious";
+      $("intensity").value = 6;
+      $("story").value = "";
+      $("reframe").value = "";
+      $("action").value = "";
+      showStatus("mapStatus", "Fields cleared.");
+      setTimeout(() => $("mapStatus").textContent = "", 1500);
+    }
+
+    async function saveMap(){
+      if(!user) return alert("Sign in first to save your thought maps.");
+      const dump = $("dump").value.trim();
+      if(!dump) return alert("Write your brain dump first.");
+
+      showStatus("mapStatus", "Saving…", false);
+
+      const payload = {
+        dump,
+        emotion: $("emotion").value,
+        intensity: Number($("intensity").value || 1),
+        story: $("story").value.trim(),
+        reframe: $("reframe").value.trim(),
+        action: $("action").value.trim()
+      };
+
+      const { error } = await supabaseClient
+        .from("thought_maps")
+        .insert({ user_id: user.id, payload });
+
+      if(error){
+        console.error(error);
+        showStatus("mapStatus", "Error saving.", false);
+        return alert(error.message);
+      }
+
+      showStatus("mapStatus", "Thought map saved ✅");
+      clearMapFields();
+      await loadMaps();
+    }
+
+    async function loadMaps(){
+      if(!user) return;
+
+      const { data, error } = await supabaseClient
+        .from("thought_maps")
+        .select("id, payload, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if(error){
+        console.error(error);
+        return;
+      }
+
+      const el = $("mapList");
+      el.innerHTML = "";
+
+      if(!data || data.length === 0){
+        el.innerHTML = `<div class="item"><div class="meta"><span>No maps yet</span></div><div class="txt">Save your first thought map to get started.</div></div>`;
+        return;
+      }
+
+      data.forEach(row => {
+        const p = row.payload || {};
+        const preview = (p.dump || "").slice(0, 120);
+
+        const div = document.createElement("div");
+        div.className = "item";
+        div.innerHTML = `
+          <div class="meta">
+            <span>${escapeHtml(p.emotion || "–")} • ${escapeHtml(String(p.intensity || ""))}/10</span>
+            <span>${escapeHtml(fmtWhen(row.created_at))}</span>
+          </div>
+          <div class="txt">${escapeHtml(preview)}${(p.dump||"").length>120 ? "…" : ""}</div>
+          <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn" data-open="${row.id}">Open</button>
+            <button class="btn" data-export="${row.id}">Export</button>
+            <button class="btn danger" data-del="${row.id}">Delete</button>
+          </div>
+        `;
+
+        // Open button - loads map into fields
+        div.querySelector("[data-open]").addEventListener("click", () => {
+          $("dump").value = p.dump || "";
+          $("emotion").value = p.emotion || "Anxious";
+          $("intensity").value = p.intensity ?? 6;
+          $("story").value = p.story || "";
+          $("reframe").value = p.reframe || "";
+          $("action").value = p.action || "";
+          showStatus("mapStatus", "Map loaded ✅ (edit and save as new, or just review)");
+          setTimeout(() => $("mapStatus").textContent = "", 2000);
+          
+          // Scroll to top of thought map section
+          div.closest('.card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Export button - exports this specific map
+        div.querySelector("[data-export]").addEventListener("click", () => {
+          exportMapAsJSON(p, row.created_at);
+        });
+
+        // Delete button
+        div.querySelector("[data-del]").addEventListener("click", async () => {
+          const ok = confirm("Delete this thought map? This cannot be undone.");
+          if(!ok) return;
+
+          const { error: delErr } = await supabaseClient
+            .from("thought_maps")
+            .delete()
+            .eq("id", row.id)
+            .eq("user_id", user.id);
+
+          if(delErr){
+            console.error(delErr);
+            return alert(delErr.message);
+          }
+          
+          showStatus("mapStatus", "Map deleted.");
+          await loadMaps();
+        });
+
+        el.appendChild(div);
+      });
+    }
+
+    function exportCurrentMap(){
+      const dump = $("dump").value.trim();
+      if(!dump) return alert("Fill out the thought map fields first, then export.");
+      
+      const payload = {
+        dump,
+        emotion: $("emotion").value,
+        intensity: Number($("intensity").value || 1),
+        story: $("story").value.trim(),
+        reframe: $("reframe").value.trim(),
+        action: $("action").value.trim()
+      };
+      
+      exportMapAsJSON(payload, new Date().toISOString());
+    }
+
+    function exportMapAsJSON(payload, timestamp) {
+      const exportData = {
+        ...payload,
+        exported_at: new Date().toISOString(),
+        created_at: timestamp
+      };
+      
+      const text = JSON.stringify(exportData, null, 2);
+      const blob = new Blob([text], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `neurovana-thought-map-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      showStatus("mapStatus", "Exported ✅");
+      setTimeout(() => $("mapStatus").textContent = "", 1500);
+    }
+
+    // ==================== INITIALIZE ====================
+    async function init(){
+      // Initialize Supabase client first
+      if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("✅ Supabase initialized successfully");
+      } else {
+        console.error("❌ Supabase library not loaded");
+        alert("Failed to load Supabase. Please refresh the page.");
+        return;
+      }
+
+      $("entryDate").value = todayISODate();
+      await refreshSession();
+      
+      // Listen for auth state changes
+      supabaseClient.auth.onAuthStateChange(async () => {
+        await refreshSession();
+      });
+    }
+
+    // Wait for DOM and Supabase to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

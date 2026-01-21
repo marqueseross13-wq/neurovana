@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeuroVana | Landing</title>
+    
+    <!-- Load Supabase from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { 
@@ -11,7 +15,6 @@
             font-family: sans-serif; 
         }
         
-        /* YOUR LAVENDER PNG BACKGROUND */
         .hero-bg {
             position: fixed;
             inset: 0;
@@ -22,14 +25,6 @@
             z-index: -3;
             opacity: 0;
             transition: opacity 2.5s ease-in-out;
-        }
-        
-        .lavender-field {
-            display: none;
-        }
-        
-        .mist {
-            display: none;
         }
         
         #flash {
@@ -75,7 +70,7 @@
             max-width: 500px;
             opacity: 0;
             transform: scale(0.9);
-            transition: 2s ease;
+            transition: 2s ease, opacity 0.5s ease;
             box-shadow: 0 8px 32px rgba(107, 79, 138, 0.4);
         }
         
@@ -97,55 +92,290 @@
             box-shadow: 0 10px 20px rgba(168, 85, 247, 0.4);
             transition: all 0.3s ease;
             cursor: pointer;
+            border: none;
+            width: 100%;
         }
         
         .btn-record:hover {
             transform: translateY(-2px);
             box-shadow: 0 15px 30px rgba(168, 85, 247, 0.6);
         }
+
+        .pulse-ring {
+            width: 40px;
+            height: 40px;
+            background: #ff4b2b;
+            border-radius: 50%;
+            animation: pulse-animation 1.5s infinite;
+        }
+
+        @keyframes pulse-animation {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0.7); }
+            70% { transform: scale(1.2); box-shadow: 0 0 0 20px rgba(255, 75, 43, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 75, 43, 0); }
+        }
+
+        audio {
+            width: 100%;
+            margin: 20px 0;
+            filter: invert(1) hue-rotate(180deg);
+        }
         
         .active { opacity: 1 !important; transform: scale(1) !important; }
         .flash-anim { animation: flash-fade 1.5s forwards; }
         @keyframes flash-fade { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+        #cardContent {
+            transition: opacity 0.4s ease;
+        }
     </style>
 </head>
 <body>
     <div id="flash"></div>
     <div class="hero-bg" id="bg"></div>
-    <div class="lavender-field" id="field"></div>
-    <div class="mist" id="mist"></div>
     <div class="top-brand" id="topText">Welcome to NEUROVANA</div>
+    
     <div class="main-container">
         <div class="glass-card" id="card">
-            <h1>Start your first pathway</h1>
-            <p style="margin-top:10px; opacity:0.9;">Record your affirmations</p>
-            <a href="#" class="btn-record">Start Recording</a>
+            <div id="cardContent">
+                <h1>Start your first pathway</h1>
+                <p style="margin-top: 10px; opacity: 0.9;">Record or type your affirmations</p>
+                <button class="btn-record" onclick="switchToMic()">Record with Mic</button>
+                <button class="btn-record" style="background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.6); margin-top: 12px;" onclick="switchToText()">Type Instead</button>
+            </div>
         </div>
     </div>
+
     <script>
+        // Initialize Supabase directly (no external file needed)
+        const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg";
+        
+        let supabaseClient = null;
+        
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.supabase && window.supabase.createClient) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log("✅ Supabase initialized successfully");
+            } else {
+                console.error("❌ Supabase library failed to load");
+            }
+        });
+        
+        // INTRO ANIMATION
         window.onload = () => {
-            // Sequence Start
             document.getElementById('flash').classList.add('flash-anim');
             
-            // Fades in the background layers
-            setTimeout(() => { 
-                document.getElementById('bg').classList.add('active'); 
-            }, 400);
-            setTimeout(() => { 
-                document.getElementById('field').classList.add('active'); 
-            }, 700);
-            setTimeout(() => { 
-                document.getElementById('mist').classList.add('active'); 
-            }, 1000);
-            // Fades in "Welcome"
-            setTimeout(() => { 
-                document.getElementById('topText').classList.add('active'); 
-            }, 1800);
-            // Fades in the Card
-            setTimeout(() => { 
-                document.getElementById('card').classList.add('active'); 
-            }, 3500);
+            setTimeout(() => { document.getElementById('bg').classList.add('active'); }, 400);
+            setTimeout(() => { document.getElementById('topText').classList.add('active'); }, 1800);
+            setTimeout(() => { document.getElementById('card').classList.add('active'); }, 2500);
         };
+
+        // MICROPHONE & RECORDING
+        let mediaRecorder;
+        let audioChunks = [];
+
+        async function saveVoiceAffirmation(audioBlob) {
+            if (!supabaseClient) {
+                alert("Supabase is not loaded. Please refresh the page.");
+                return;
+            }
+
+            try {
+                // Get current user
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                const userId = sessionData?.session?.user?.id;
+
+                if (!userId) {
+                    alert("Please sign in first to save affirmations");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                const fileName = `voice_${Date.now()}.webm`;
+                const filePath = `voice/${fileName}`;
+
+                console.log("Uploading audio file...");
+
+                const { data: uploadData, error: uploadError } = await supabaseClient.storage
+                    .from("affirmations")
+                    .upload(filePath, audioBlob, {
+                        contentType: "audio/webm",
+                        upsert: true,
+                    });
+
+                if (uploadError) {
+                    console.error("Upload error:", uploadError);
+                    alert("Audio upload failed: " + uploadError.message);
+                    return;
+                }
+
+                console.log("Upload successful:", uploadData);
+
+                const { error: insertError } = await supabaseClient
+                    .from("affirmations")
+                    .insert([{
+                        user_id: userId,
+                        type: "voice",
+                        content: uploadData.path,
+                    }]);
+
+                if (insertError) {
+                    console.error("Insert error:", insertError);
+                    alert("Database save failed: " + insertError.message);
+                    return;
+                }
+
+                console.log("Save successful, redirecting...");
+                window.location.href = "home.html";
+            } catch (err) {
+                console.error("Unexpected error:", err);
+                alert("An unexpected error occurred. Please try again.");
+            }
+        }
+
+        function switchToMic() {
+            const card = document.getElementById('cardContent');
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                card.innerHTML = `
+                    <h1>Voice Capture</h1>
+                    <div style="height: 80px; display: flex; align-items: center; justify-content: center; margin: 10px 0;">
+                        <div class="pulse-ring" id="pulse" style="display:none;"></div>
+                        <span id="micIcon" style="font-size: 2.5rem;">🎙️</span>
+                    </div>
+                    <p id="micStatus">Ready to capture your voice</p>
+                    <button class="btn-record" id="micBtn" onclick="handleToggleMic()">Start Microphone</button>
+                    <p style="margin-top: 20px; cursor: pointer; opacity: 0.5; font-size: 0.9rem;" onclick="location.reload()">Cancel</p>
+                `;
+                card.style.opacity = '1';
+            }, 400);
+        }
+
+        async function handleToggleMic() {
+            const btn = document.getElementById('micBtn');
+            const pulse = document.getElementById('pulse');
+            const icon = document.getElementById('micIcon');
+            const status = document.getElementById('micStatus');
+
+            if (!mediaRecorder || mediaRecorder.state === "inactive") {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                        showPlaybackUI(blob);
+                    };
+
+                    mediaRecorder.start();
+                    btn.innerText = "Stop & Review";
+                    btn.style.background = "#ff4b2b";
+                    pulse.style.display = "block";
+                    icon.style.display = "none";
+                    status.innerText = "Listening... Speak clearly";
+                } catch (err) {
+                    alert("Microphone access denied. Please allow mic access in your browser settings.");
+                }
+            } else {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+        }
+
+        function showPlaybackUI(blob) {
+            const card = document.getElementById('cardContent');
+            const audioUrl = URL.createObjectURL(blob);
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                card.innerHTML = `
+                    <h1>Review Pathway</h1>
+                    <p>Listen back to your affirmation:</p>
+                    <audio controls src="${audioUrl}"></audio>
+                    <button class="btn-record" style="background: #22c55e; margin-top: 5px;" onclick="saveRecording()">Yes, it's perfect</button>
+                    <button class="btn-record" style="background: rgba(255,255,255,0.1); border: 1px solid white; margin-top: 10px;" onclick="switchToMic()">No, try again</button>
+                `;
+                card.style.opacity = '1';
+                
+                // Store blob for saving later
+                window.currentAudioBlob = blob;
+            }, 400);
+        }
+
+        async function saveRecording() {
+            if (window.currentAudioBlob) {
+                await saveVoiceAffirmation(window.currentAudioBlob);
+            }
+        }
+        
+        function switchToText() {
+            const card = document.getElementById('cardContent');
+            card.style.opacity = '0';
+
+            setTimeout(() => {
+                card.innerHTML = `
+                    <h1>Type Affirmation</h1>
+                    <p style="opacity:0.9; margin-top:10px;">No mic needed. Write it out here:</p>
+                    <textarea id="typedAffirmation"
+                        placeholder="I am calm. I am focused. I am becoming my best self..."
+                        style="width:100%; min-height:120px; margin-top:14px; padding:14px; border-radius:14px;
+                        border:1px solid rgba(255,255,255,0.25);
+                        background:rgba(0,0,0,0.25); color:white; outline:none; resize:none;"></textarea>
+                    <button class="btn-record" style="background:#22c55e; margin-top:14px;" onclick="saveTypedAffirmation()">Save & Continue</button>
+                    <button class="btn-record" style="background: rgba(255,255,255,0.1); border: 1px solid white; margin-top: 10px;" onclick="location.reload()">Back</button>
+                `;
+                card.style.opacity = '1';
+            }, 400);
+        }
+
+        async function saveTypedAffirmation() {
+            const text = document.getElementById("typedAffirmation")?.value?.trim();
+            if (!text) {
+                alert("Please type an affirmation first.");
+                return;
+            }
+
+            if (!supabaseClient) {
+                alert("Supabase not loaded. Please refresh the page.");
+                return;
+            }
+
+            try {
+                // Get current user
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                const userId = sessionData?.session?.user?.id;
+
+                if (!userId) {
+                    alert("Please sign in first to save affirmations");
+                    window.location.href = "index.html";
+                    return;
+                }
+
+                const { error } = await supabaseClient
+                    .from("affirmations")
+                    .insert([{ 
+                        user_id: userId,
+                        type: "text", 
+                        content: text 
+                    }]);
+
+                if (error) {
+                    console.error("Save error:", error);
+                    alert("Save failed: " + error.message);
+                    return;
+                }
+
+                window.location.href = "home.html";
+            } catch (err) {
+                console.error("Unexpected error:", err);
+                alert("An unexpected error occurred. Please try again.");
+            }
+        }
     </script>
 </body>
 </html>

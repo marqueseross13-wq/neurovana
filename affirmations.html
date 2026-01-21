@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Neurovana | Affirmations</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --purple: #7c3aed;
+      --neon: #22c55e;
+      --bg: radial-gradient(circle at top, #1a0933, #05010a);
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: white;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    header {
+      padding: 30px;
+      text-align: center;
+      letter-spacing: 0.5rem;
+      font-size: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(168,85,247,0.8);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 300;
+      margin-bottom: 40px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(124,58,237,0.2);
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 120px;
+      background: rgba(0,0,0,0.3);
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      color: white;
+      resize: none;
+    }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 30px;
+      border: none;
+      background: var(--neon);
+      color: black;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: transparent;
+      border: 1px solid white;
+      color: white;
+    }
+
+    .catalog {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+
+    .list {
+      background: rgba(255,255,255,0.04);
+      padding: 20px;
+      border-radius: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .item {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      opacity: 0;
+      animation: fadeIn 0.6s forwards;
+    }
+
+    audio {
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    small {
+      display: block;
+      margin-top: 6px;
+      opacity: 0.7;
+      font-size: 12px;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 900px) {
+      .input-grid, .catalog {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .auth-notice {
+      background: rgba(255,68,68,0.1);
+      border: 1px solid rgba(255,68,68,0.3);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="home.html">NEUROVANA</a>
+    <a href="home.html" class="btn">← Home</a>
+  </header>
+
+  <div class="container">
+    <div id="authNotice" class="auth-notice" style="display:none;">
+      Please sign in to save affirmations
+      <a href="index.html" class="btn" style="margin-left: 10px;">Sign In</a>
+    </div>
+
+    <h1>Affirmation Catalog</h1>
+
+    <!-- INPUT -->
+    <div class="input-grid">
+      <div class="card">
+        <h3>Write Affirmation</h3>
+        <textarea id="textAffirmation" placeholder="I am aligned with my highest self..."></textarea>
+        <button id="saveTextBtn">Save Affirmation</button>
+      </div>
+
+      <div class="card">
+        <h3>Record Affirmation</h3>
+        <button class="secondary" id="startRecBtn">Start Recording</button>
+        <button id="stopRecBtn">Stop & Save</button>
+        <small id="recStatus" style="margin-top:10px; opacity:0.8;"></small>
+      </div>
+    </div>
+
+    <!-- CATALOG -->
+    <div class="catalog">
+      <div class="list">
+        <h3>Text Affirmations</h3>
+        <div id="textList"></div>
+      </div>
+
+      <div class="list">
+        <h3>Voice Affirmations</h3>
+        <div id="voiceList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg";
+
+    let supabaseClient = null;
+    let user = null;
+
+    // Initialize Supabase
+    if (window.supabase && window.supabase.createClient) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    function escapeHtml(str) {
+      return (str || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getPublicAudioUrl(path) {
+      const { data } = supabaseClient.storage.from("affirmations").getPublicUrl(path);
+      return data?.publicUrl || "";
+    }
+
+    function formatTime(ts) {
+      try { return new Date(ts).toLocaleString(); } catch { return ""; }
+    }
+
+    async function checkAuth() {
+      if (!supabaseClient) return;
+      
+      const { data } = await supabaseClient.auth.getSession();
+      user = data?.session?.user || null;
+
+      if (!user) {
+        document.getElementById('authNotice').style.display = 'block';
+      }
+    }
+
+    async function loadAffirmations() {
+      const textList = document.getElementById("textList");
+      const voiceList = document.getElementById("voiceList");
+      if (!textList || !voiceList) return;
+
+      textList.innerHTML = "";
+      voiceList.innerHTML = "";
+
+      let query = supabaseClient
+        .from("affirmations")
+        .select("id, type, content, created_at, user_id")
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      // If logged in, show only user's affirmations
+      if (user) {
+        query = query.eq("user_id", user.id);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Load error:", error.message);
+        return;
+      }
+
+      (data || []).forEach((row) => {
+        if (row.type === "text") {
+          const el = document.createElement("div");
+          el.className = "item";
+          el.innerHTML = `
+            <div>${escapeHtml(row.content)}</div>
+            <small>${formatTime(row.created_at)}</small>
+          `;
+          textList.appendChild(el);
+        }
+
+        if (row.type === "voice") {
+          const url = getPublicAudioUrl(row.content);
+          const el = document.createElement("div");
+          el.className = "item";
+          el.innerHTML = `
+            <audio controls>
+              <source src="${url}" type="audio/webm" />
+            </audio>
+            <small>${formatTime(row.created_at)}</small>
+          `;
+          voiceList.appendChild(el);
+        }
+      });
+    }
+
+    async function saveText() {
+      const ta = document.getElementById("textAffirmation");
+      const content = (ta?.value || "").trim();
+      if (!content) return;
+
+      if (!user) {
+        alert("Please sign in to save affirmations");
+        return;
+      }
+
+      const { error } = await supabaseClient
+        .from("affirmations")
+        .insert({ type: "text", content, user_id: user.id });
+
+      if (error) {
+        alert("Save failed: " + error.message);
+        return;
+      }
+
+      ta.value = "";
+      await loadAffirmations();
+    }
+
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let currentStream = null;
+
+    async function startRecording() {
+      const status = document.getElementById("recStatus");
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(currentStream);
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) audioChunks.push(e.data);
+        };
+
+        mediaRecorder.start();
+        if (status) status.textContent = "Recording…";
+      } catch (err) {
+        console.error(err);
+        alert("Mic permission blocked or no mic available.");
+      }
+    }
+
+    async function stopRecording() {
+      const status = document.getElementById("recStatus");
+      if (!mediaRecorder) return;
+
+      if (!user) {
+        alert("Please sign in to save affirmations");
+        if (currentStream) {
+          currentStream.getTracks().forEach(t => t.stop());
+        }
+        return;
+      }
+
+      mediaRecorder.stop();
+
+      mediaRecorder.onstop = async () => {
+        try {
+          if (status) status.textContent = "Saving…";
+
+          if (currentStream) {
+            currentStream.getTracks().forEach(t => t.stop());
+            currentStream = null;
+          }
+
+          const blob = new Blob(audioChunks, { type: "audio/webm" });
+          const fileName = `affirmation-${Date.now()}.webm`;
+
+          const uploadRes = await supabaseClient
+            .storage
+            .from("affirmations")
+            .upload(fileName, blob, {
+              contentType: "audio/webm",
+              upsert: false
+            });
+
+          if (uploadRes.error) {
+            alert("Upload failed: " + uploadRes.error.message);
+            if (status) status.textContent = "";
+            return;
+          }
+
+          const { error } = await supabaseClient
+            .from("affirmations")
+            .insert({
+              type: "voice",
+              content: uploadRes.data.path,
+              user_id: user.id
+            });
+
+          if (error) {
+            alert("DB save failed: " + error.message);
+            if (status) status.textContent = "";
+            return;
+          }
+
+          if (status) status.textContent = "Saved ✓";
+          setTimeout(() => { if (status) status.textContent = ""; }, 1200);
+
+          await loadAffirmations();
+        } catch (err) {
+          console.error(err);
+          alert("Save failed. Check console.");
+          if (status) status.textContent = "";
+        }
+      };
+    }
+
+    document.getElementById("saveTextBtn")?.addEventListener("click", saveText);
+    document.getElementById("startRecBtn")?.addEventListener("click", startRecording);
+    document.getElementById("stopRecBtn")?.addEventListener("click", stopRecording);
+
+    async function init() {
+      await checkAuth();
+      await loadAffirmations();
+    }
+
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>

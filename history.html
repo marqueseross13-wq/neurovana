@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neurovana • History</title>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#070514;
+      --bg2:#0b0920;
+      --card:rgba(255,255,255,.07);
+      --card2:rgba(255,255,255,.05);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --muted2:rgba(255,255,255,.45);
+      --accent:#8B5CF6;
+      --good:#22C55E;
+      --warning:#F59E0B;
+      --danger:#EF4444;
+      --shadow:0 18px 60px rgba(0,0,0,.52);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 15%, rgba(139,92,246,.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 25%, rgba(34,197,94,.14), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    .wrap{ max-width: 1200px; margin:0 auto; padding: 18px; }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .brand{ display:flex; flex-direction:column; gap:3px; }
+    .brand .t{ font-size:16px; letter-spacing:.2px; }
+    .brand .s{ font-size:12px; color:var(--muted); }
+
+    .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease;
+      font-size:13px;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      border-color: rgba(139,92,246,.42);
+      background: linear-gradient(180deg, rgba(139,92,246,.30), rgba(139,92,246,.12));
+    }
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.08));
+    }
+
+    /* Stats Grid */
+    .stats{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:14px;
+    }
+
+    .stat-card{
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      padding: 20px;
+      text-align: center;
+    }
+
+    .stat-card .value{
+      font-size: 36px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .stat-card .label{
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-card.good .value{ color: var(--good); }
+    .stat-card.warning .value{ color: var(--warning); }
+
+    /* Activity Timeline */
+    .card{
+      margin-top: 14px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+
+    .cardHead{
+      padding: 14px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .cardHead h2{ margin:0; font-size:16px; letter-spacing:.2px; }
+
+    .cardBody{ padding: 16px; }
+
+    .timeline{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .activity{
+      display:flex;
+      gap:12px;
+      padding: 12px;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 12px;
+      background: rgba(0,0,0,.18);
+      transition: background 0.2s ease;
+    }
+
+    .activity:hover{ background: rgba(0,0,0,.28); }
+
+    .activity .icon{
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .activity .icon.journal{ background: rgba(139,92,246,.2); }
+    .activity .icon.affirmation{ background: rgba(34,197,94,.2); }
+    .activity .icon.vana{ background: rgba(245,158,11,.2); }
+    .activity .icon.map{ background: rgba(236,72,153,.2); }
+
+    .activity .details{ flex:1; }
+    .activity .details .title{ font-size:14px; font-weight:600; margin-bottom:4px; }
+    .activity .details .meta{ font-size:12px; color:var(--muted); }
+
+    .empty{
+      text-align:center;
+      padding: 40px;
+      color: var(--muted2);
+    }
+
+    /* Filter Tabs */
+    .filters{
+      display:flex;
+      gap:8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn{
+      padding: 8px 14px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      cursor:pointer;
+      transition: all 0.2s ease;
+      user-select:none;
+    }
+
+    .filter-btn:hover{ background: rgba(255,255,255,.10); }
+    .filter-btn.active{
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .authBox{
+      margin-top: 14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      display:none;
+    }
+    .authBox.show{ display:block; }
+    .authBox p{ margin-bottom: 16px; color: var(--muted); }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="t">Neural Memory</div>
+        <div class="s">Track your progress & growth</div>
+      </div>
+      <div class="right">
+        <span class="pill" id="statusPill">Loading…</span>
+        <button class="btn" onclick="location.href='home.html'">← Home</button>
+        <button class="btn primary" id="logoutBtn" style="display:none;">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Auth Required Message -->
+    <div class="authBox" id="authBox">
+      <p>📊 Sign in to track your progress across all activities</p>
+      <button class="btn primary" onclick="location.href='index.html'">Go to Login</button>
+    </div>
+
+    <!-- Stats Overview -->
+    <div class="stats" id="statsSection" style="display:none;">
+      <div class="stat-card good">
+        <div class="value" id="totalActivities">0</div>
+        <div class="label">Total Activities</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="value" id="currentStreak">0</div>
+        <div class="label">Day Streak</div>
+      </div>
+      
+      <div class="stat-card warning">
+        <div class="value" id="journalCount">0</div>
+        <div class="label">Journal Entries</div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="value" id="affirmationCount">0</div>
+        <div class="label">Affirmations</div>
+      </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <section class="card" id="timelineSection" style="display:none;">
+      <div class="cardHead">
+        <h2>Recent Activity</h2>
+        <button class="btn danger" id="clearHistoryBtn">Clear All</button>
+      </div>
+      
+      <div class="cardBody">
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="journal">Journal</button>
+          <button class="filter-btn" data-filter="affirmation">Affirmations</button>
+          <button class="filter-btn" data-filter="thought_map">Thought Maps</button>
+          <button class="filter-btn" data-filter="vana_chat">Vana Chats</button>
+        </div>
+        
+        <div class="timeline" id="timeline">
+          <div class="empty">No activity yet. Start your journey!</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // Initialize Supabase
+    const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg";
+    
+    let supabaseClient = null;
+    let user = null;
+    let currentFilter = 'all';
+
+    const $ = (id) => document.getElementById(id);
+
+    function setPill(text){ $("statusPill").textContent = text; }
+
+    // Activity type icons
+    const activityIcons = {
+      journal: '📖',
+      affirmation: '✨',
+      thought_map: '🧠',
+      vana_chat: '💬'
+    };
+
+    const activityLabels = {
+      journal: 'Journal Entry',
+      affirmation: 'Affirmation',
+      thought_map: 'Thought Map',
+      vana_chat: 'Vana Chat'
+    };
+
+    // Format timestamp
+    function formatTime(iso) {
+      try {
+        const date = new Date(iso);
+        const now = new Date();
+        const diff = now - date;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (minutes > 0) return `${minutes} min${minutes > 1 ? 's' : ''} ago`;
+        return 'Just now';
+      } catch {
+        return iso;
+      }
+    }
+
+    // Render timeline
+    function renderTimeline(activities) {
+      const timeline = $("timeline");
+      timeline.innerHTML = "";
+
+      if (!activities || activities.length === 0) {
+        timeline.innerHTML = '<div class="empty">No activity yet. Start your journey!</div>';
+        return;
+      }
+
+      activities.forEach(activity => {
+        const div = document.createElement("div");
+        div.className = "activity";
+        div.innerHTML = `
+          <div class="icon ${activity.activity_type}">
+            ${activityIcons[activity.activity_type] || '📌'}
+          </div>
+          <div class="details">
+            <div class="title">${activityLabels[activity.activity_type] || activity.activity_type}</div>
+            <div class="meta">${formatTime(activity.created_at)}</div>
+          </div>
+        `;
+        timeline.appendChild(div);
+      });
+    }
+
+    // Load history and stats
+    async function loadHistory() {
+      if (!user) return;
+
+      try {
+        // Load activity history
+        const { data: activities, error } = await supabaseClient
+          .from("activity_history")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(100);
+
+        if (error) {
+          console.error("Error loading history:", error);
+          return;
+        }
+
+        // Filter if needed
+        const filtered = currentFilter === 'all' 
+          ? activities 
+          : activities.filter(a => a.activity_type === currentFilter);
+
+        renderTimeline(filtered);
+
+        // Calculate stats
+        const total = activities.length;
+        const journalCount = activities.filter(a => a.activity_type === 'journal').length;
+        const affirmationCount = activities.filter(a => a.activity_type === 'affirmation').length;
+
+        // Calculate streak
+        let streak = 0;
+        const today = new Date().toDateString();
+        const dates = [...new Set(activities.map(a => new Date(a.created_at).toDateString()))];
+        
+        for (let i = 0; i < dates.length; i++) {
+          const checkDate = new Date();
+          checkDate.setDate(checkDate.getDate() - i);
+          if (dates.includes(checkDate.toDateString())) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+
+        // Update stats
+        $("totalActivities").textContent = total;
+        $("currentStreak").textContent = streak;
+        $("journalCount").textContent = journalCount;
+        $("affirmationCount").textContent = affirmationCount;
+
+      } catch (err) {
+        console.error("Error loading history:", err);
+      }
+    }
+
+    // Clear all history
+    async function clearAllHistory() {
+      if (!user) return;
+      
+      const confirm = window.confirm("Are you sure you want to delete ALL your activity history? This cannot be undone.");
+      if (!confirm) return;
+
+      try {
+        const { error } = await supabaseClient
+          .from("activity_history")
+          .delete()
+          .eq("user_id", user.id);
+
+        if (error) {
+          alert("Error clearing history: " + error.message);
+          return;
+        }
+
+        await loadHistory();
+      } catch (err) {
+        console.error("Error clearing history:", err);
+        alert("Failed to clear history");
+      }
+    }
+
+    // Auth
+    async function refreshSession() {
+      if (!supabaseClient) return;
+
+      const { data } = await supabaseClient.auth.getSession();
+      user = data?.session?.user || null;
+
+      if (!user) {
+        setPill("Not signed in");
+        $("authBox").classList.add("show");
+        $("statsSection").style.display = "none";
+        $("timelineSection").style.display = "none";
+        $("logoutBtn").style.display = "none";
+        return;
+      }
+
+      setPill("Signed in as " + (user.email || "user"));
+      $("authBox").classList.remove("show");
+      $("statsSection").style.display = "grid";
+      $("timelineSection").style.display = "block";
+      $("logoutBtn").style.display = "inline-block";
+      
+      await loadHistory();
+    }
+
+    $("logoutBtn").addEventListener("click", async () => {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      await refreshSession();
+    });
+
+    $("clearHistoryBtn").addEventListener("click", clearAllHistory);
+
+    // Filter buttons
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        loadHistory();
+      });
+    });
+
+    // Initialize
+    async function init() {
+      if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        console.log("✅ Supabase initialized");
+      } else {
+        console.error("❌ Supabase library not loaded");
+        alert("Failed to load. Please refresh the page.");
+        return;
+      }
+
+      await refreshSession();
+
+      supabaseClient.auth.onAuthStateChange(async () => {
+        await refreshSession();
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>

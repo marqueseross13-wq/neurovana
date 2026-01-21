@@ -1,59 +1,85 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroVana | Peaceful Mind</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeuroVana | Peaceful Mind</title>
+
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <meta name="theme-color" content="#0d0221" />
 </head>
+
 <body>
+  <!-- Background canvas -->
+  <canvas id="neuralCanvas"></canvas>
 
-    <canvas id="neuralCanvas"></canvas>
+  <div class="main-wrapper">
+    <header class="branding" aria-label="NeuroVana">
+      <h1>NeuroVana</h1>
+      <p>The pathways to a peaceful mind</p>
+    </header>
 
-    <div class="main-wrapper">
-        <header class="branding">
-            <h1>NeuroVana</h1>
-            <p>The pathways to a peaceful mind</p>
-        </header>
+    <main class="login-card" role="main" aria-label="Login">
+      <section class="welcome-section">
+        <h2>Welcome,</h2>
+        <p>Glad to see you!</p>
+      </section>
 
-        <div class="login-card">
-            <div class="welcome-section">
-                <h2>Welcome,</h2>
-                <p>Glad to see you!</p>
-            </div>
-            
-            <form id="loginForm">
-                <div class="input-container">
-                    <input type="email" id="emailInput" placeholder="Email Address" required>
-                </div>
-                <div class="input-container">
-                    <input type="password" id="passwordField" placeholder="Password" required>
-                    <i class="fa-regular fa-eye-slash toggle-icon" id="togglePassword"></i>
-                </div>
-
-                <div class="form-options">
-                    <a href="#">Forgot Password?</a>
-                </div>
-
-                <button type="submit" class="btn btn-login">Login</button> 
-                <button type="button" class="btn btn-signup-alt" onclick="window.location.href='signup.html'">Sign Up</button>
-            </form>
-
-            <div class="separator"><span>Or Login with</span></div>
-
-            <div class="social-row">
-                <button class="social-btn"><i class="fa-brands fa-google"></i></button> 
-                <button class="social-btn"><i class="fa-brands fa-facebook-f"></i></button>
-            </div>
-
-            <p class="signup-prompt">Don't have an account? <a href="#">Sign Up Now</a></p>
-            <a href="#" class="guest-access">Continue as a guest</a>
+      <form id="loginForm" autocomplete="on">
+        <div class="input-container">
+          <label for="emailInput" class="sr-only">Email</label>
+          <input type="email" id="emailInput" placeholder="Email Address" required autocomplete="email" />
         </div>
-    </div>
-    
+
+        <div class="input-container">
+          <label for="passwordField" class="sr-only">Password</label>
+          <input type="password" id="passwordField" placeholder="Password" required autocomplete="current-password" />
+          <i class="fa-regular fa-eye-slash toggle-icon" id="togglePassword" aria-label="Toggle password visibility" role="button" tabindex="0"></i>
+        </div>
+
+        <div class="form-options">
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-login">Login</button>
+
+        <button
+          type="button"
+          class="btn btn-signup-alt"
+          onclick="window.location.href='signup.html'">
+          Sign Up
+        </button>
+      </form>
+
+      <div class="separator"><span>Or Login with</span></div>
+
+      <div class="social-row">
+        <button type="button" class="social-btn" aria-label="Continue with Google">
+          <i class="fa-brands fa-google"></i>
+        </button>
+        <button type="button" class="social-btn" aria-label="Continue with Facebook">
+          <i class="fa-brands fa-facebook-f"></i>
+        </button>
+      </div>
+
+      <p class="signup-prompt">
+        Don't have an account?
+        <a href="signup.html">Sign Up Now</a>
+      </p>
+
+      <a  href="home.html" class="guest-access" id="guestLink">
+  Continue as a guest</a>
+    </main>
+  </div>
+   
+  <!-- Supabase + your scripts (keep in this order) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js"></script>
-    <script src="animation.js"></script>
+  <script src="script.js"></script>
+  <script src="animation.js"></script>
 </body>
 </html>

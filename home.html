@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Neurovana – Home</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --bg-deep:#06031a;
+  --bg-mid:#150a3d;
+  --accent:#8f90ff;
+  --accent-soft:#c6c8ff;
+  --text-main:#ffffff;
+  --text-muted:#b5b7ff;
+  --glass:rgba(255,255,255,0.06);
+  --border:rgba(255,255,255,0.14);
+}
+
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Inter",sans-serif}
+
+body{
+  min-height:100vh;
+  background:radial-gradient(circle at top,#2a1672,var(--bg-deep));
+  color:var(--text-main);
+  overflow-x:hidden;
+}
+
+/* ===== CANVAS ===== */
+canvas{
+  position:fixed;
+  inset:0;
+  z-index:-1;
+}
+
+/* ===== NAV ===== */
+header{
+  padding:24px 48px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.logo{font-size:20px;font-weight:700;letter-spacing:1px}
+nav{display:flex;gap:28px}
+nav a{
+  color:var(--text-muted);
+  text-decoration:none;
+  font-weight:500;
+}
+nav a:hover{color:var(--text-main)}
+
+/* ===== HERO ===== */
+.hero{
+  min-height:80vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:80px 24px;
+}
+
+.hero h1{
+  font-size:46px;
+  margin-bottom:12px;
+  text-shadow:0 0 50px rgba(143,144,255,0.45);
+}
+
+.hero p{
+  font-size:18px;
+  color:var(--text-muted);
+}
+
+/* ===== METRICS ===== */
+.metrics{
+  display:flex;
+  gap:16px;
+  margin-top:26px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
+.metric{
+  padding:12px 22px;
+  border-radius:999px;
+  background:var(--glass);
+  border:1px solid var(--border);
+  backdrop-filter:blur(10px);
+  font-size:14px;
+  color:var(--accent-soft);
+}
+
+/* ===== PATHWAYS ===== */
+.paths{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:22px;
+  max-width:1000px;
+  width:100%;
+  margin-top:56px;
+}
+
+.card{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:30px;
+  backdrop-filter:blur(14px);
+  cursor:pointer;
+  transition:transform .3s ease,box-shadow .3s ease;
+  position:relative;
+}
+
+.card.glow{
+  box-shadow:0 0 36px rgba(143,144,255,.6);
+}
+
+.card:hover{transform:translateY(-8px)}
+.card h3{font-size:18px;margin-bottom:6px}
+.card span{font-size:14px;color:var(--accent-soft)}
+
+/* ===== TRACKER ===== */
+.tracker{
+  padding:48px;
+  background:linear-gradient(180deg,rgba(6,3,26,0),rgba(6,3,26,.96));
+  border-top:1px solid var(--border);
+}
+
+.tracker h2{
+  font-size:22px;
+  margin-bottom:18px;
+}
+
+.log{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.log-item{
+  background:var(--glass);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px 18px;
+  font-size:14px;
+  color:var(--text-muted);
+}
+
+footer{
+  text-align:center;
+  padding:20px;
+  font-size:13px;
+  color:var(--text-muted);
+}
+
+.logo a {
+  color: white;
+  text-decoration: none;
+  letter-spacing: 0.6rem;
+  font-weight: 600;
+  display: inline-block;
+  transition: transform 0.4s ease, text-shadow 0.4s ease, opacity 0.4s ease;
+  text-shadow: 0 4px 12px rgba(168, 85, 247, 0.6);
+}
+
+.logo a:hover {
+  transform: scale(1.05);
+  text-shadow: 0 0 25px rgba(168, 85, 247, 0.9);
+}
+
+/* ================= CALM ME NOW (NEW) ================= */
+.calm-cta{
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.calm-main-btn{
+  min-width: 260px;
+  padding: 16px 28px;
+  font-size: 18px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(180deg, rgba(168,145,255,0.35), rgba(255,255,255, 0.08));
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 20px 50px rgba(0,0,0,.45);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.calm-main-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 26px 65px rgba(0,0,0,.6);
+}
+
+.calm-subtext{
+  font-size: 13px;
+  color: rgba(255,255,255,.65);
+  text-align: center;
+  max-width: 520px;
+  line-height: 1.35;
+}
+
+/* Overlay + panel */
+.calm-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:9999;
+}
+
+.calm-panel{
+  width:min(720px, 96vw);
+  background:rgba(12, 8, 32, .92);
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:20px;
+  padding:18px;
+  backdrop-filter:blur(14px);
+  box-shadow:0 30px 90px rgba(0,0,0,.6);
+  text-align:left;
+}
+
+.calm-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+.calm-title{ font-size:18px; font-weight:700; }
+.calm-sub{ font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+.calm-close{
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  border-radius:12px;
+  padding:10px 12px;
+  cursor:pointer;
+}
+
+.calm-box{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  padding:14px;
+  color:var(--accent-soft);
+  line-height:1.45;
+  margin-bottom:12px;
+}
+
+.calm-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.calm-input{
+  flex:1;
+  min-width:240px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.22);
+  color:#fff;
+  border-radius:14px;
+  padding:12px 12px;
+  outline:none;
+}
+
+.calm-action{
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.08);
+  color:#fff;
+  border-radius:14px;
+  padding:12px 14px;
+  cursor:pointer;
+}
+
+.calm-action:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.calm-foot{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--text-muted);
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="brain"></canvas>
+
+<header>
+  <div class="logo">
+    <a href="home.html" id="homeLogo">NEUROVANA</a>
+  </div>
+
+  <nav>
+    <a href="ai.html">Talk to VANA</a>
+    <a href="affirmations.html">Affirmations</a>
+    <a href="journal.html">Journal</a>
+    <a href="history.html">History</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>What path will you choose today?</h1>
+  <p>Your mind strengthens through intention.</p>
+
+  <div class="metrics">
+    <div class="metric" id="score">Neural Score: 0</div>
+    <div class="metric" id="streak">Streak: 0 days</div>
+  </div>
+
+  <div class="paths">
+    <div class="card" onclick="logActivity('Talk to VANA'); window.location.href='ai.html'">
+      <h3>Talk to VANA</h3><span>Neural reflection</span>
+    </div>
+
+    <div class="card" onclick="logActivity('Affirmations'); window.location.href='affirmations.html'">
+      <h3>Affirmations</h3><span>Cognitive reinforcement</span>
+    </div>
+
+    <div class="card" onclick="logActivity('Journal'); window.location.href='journal.html'">
+      <h3>Journal</h3><span>Thought mapping</span>
+    </div>
+
+    <div class="card" onclick="logActivity('History'); window.location.href='history.html'">
+      <h3>History</h3><span>Neural memory</span>
+    </div>
+  </div>
+
+  <!-- ✅ Calm Me Now button under the 4 cards (NEW) -->
+  <div class="calm-cta">
+    <button id="calmBtn" class="calm-main-btn" type="button">Calm Me Now</button>
+    <div class="calm-subtext">30 seconds to reset your breath, body, and thoughts.</div>
+  </div>
+</section>
+
+<section class="tracker">
+  <h2>Your Neural Activity</h2>
+  <div class="log" id="activityLog">
+    <div class="log-item">No activity yet — awaken the network ✨</div>
+  </div>
+</section>
+
+<footer>© Neurovana — Inside the Mind</footer>
+
+<!-- ================= Calm Overlay (NEW) ================= -->
+<div class="calm-overlay" id="calmOverlay" aria-hidden="true">
+  <div class="calm-panel" role="dialog" aria-modal="true" aria-label="Calm Me Now">
+    <div class="calm-head">
+      <div>
+        <div class="calm-title">Calm Me Now</div>
+        <div class="calm-sub">Breathe + speak an affirmation + record your own voice.</div>
+      </div>
+      <button class="calm-close" id="calmClose" type="button">✕</button>
+    </div>
+
+    <div class="calm-box" id="calmText">
+      <b>Breathing reset (30s):</b><br>
+      Inhale 4… hold 2… exhale 6 (repeat 3 times).<br>
+      Drop your shoulders. Unclench your jaw.<br>
+      Name 3 things you see + 2 things you feel.
+    </div>
+
+    <div class="calm-row">
+      <input id="affirmationInput" class="calm-input" type="text"
+             placeholder="Type your affirmation (example: I am calm and capable.)" />
+      <button class="calm-action" id="speakBtn" type="button">Speak</button>
+    </div>
+
+    <div class="calm-row">
+      <button class="calm-action" id="recordBtn" type="button">Record My Voice</button>
+      <button class="calm-action" id="stopBtn" type="button" disabled>Stop</button>
+      <button class="calm-action" id="playBtn" type="button" disabled>Play My Recording</button>
+    </div>
+
+    <div class="calm-foot" id="calmStatus">
+      Tip: For voice recording, your site must be loaded over HTTPS and you must allow mic access.
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CANVAS NEURAL NETWORK ================= */
+const canvas=document.getElementById("brain");
+const ctx=canvas.getContext("2d");
+canvas.width=innerWidth;
+canvas.height=innerHeight;
+onresize=()=>{canvas.width=innerWidth;canvas.height=innerHeight};
+
+const neurons=[...Array(60)].map(()=>({
+  x:Math.random()*canvas.width,
+  y:Math.random()*canvas.height,
+  vx:(Math.random()-.5)*.3,
+  vy:(Math.random()-.5)*.3,
+  r:2
+}));
+
+let audioLevel=0;
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  neurons.forEach(n=>{
+    n.x+=n.vx;n.y+=n.vy;
+    if(n.x<0||n.x>canvas.width)n.vx*=-1;
+    if(n.y<0||n.y>canvas.height)n.vy*=-1;
+
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,n.r+audioLevel*4,0,Math.PI*2);
+    ctx.fillStyle=`rgba(143,144,255,${0.6+audioLevel})`;
+    ctx.fill();
+
+    neurons.forEach(m=>{
+      const d=Math.hypot(n.x-m.x,n.y-m.y);
+      if(d<130){
+        ctx.strokeStyle=`rgba(143,144,255,${(1-d/130)*(0.4+audioLevel)})`;
+        ctx.lineWidth=.5;
+        ctx.beginPath();
+        ctx.moveTo(n.x,n.y);
+        ctx.lineTo(m.x,m.y);
+        ctx.stroke();
+      }
+    });
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+/* ================= SOUND REACTIVE ================= */
+navigator.mediaDevices.getUserMedia({audio:true}).then(stream=>{
+  const audioCtx=new AudioContext();
+  const analyser=audioCtx.createAnalyser();
+  const mic=audioCtx.createMediaStreamSource(stream);
+  mic.connect(analyser);
+  analyser.fftSize=256;
+  const data=new Uint8Array(analyser.frequencyBinCount);
+
+  function listen(){
+    analyser.getByteFrequencyData(data);
+    audioLevel=data.reduce((a,b)=>a+b,0)/data.length/255;
+    requestAnimationFrame(listen);
+  }
+  listen();
+}).catch(()=>audioLevel=0);
+
+/* ================= CARD GLOW ================= */
+const cards=document.querySelectorAll(".card");
+setInterval(()=>{
+  cards.forEach(c=>{
+    Math.random()>.7?c.classList.add("glow"):c.classList.remove("glow");
+  });
+},1200);
+
+/* ================= ACTIVITY + STREAK ================= */
+const logEl=document.getElementById("activityLog");
+const scoreEl=document.getElementById("score");
+const streakEl=document.getElementById("streak");
+
+let score=Number(localStorage.getItem("score"))||0;
+let streak=Number(localStorage.getItem("streak"))||0;
+let lastDate=localStorage.getItem("lastDate");
+
+const today=new Date().toDateString();
+if(lastDate && lastDate!==today){
+  const diff=(new Date(today)-new Date(lastDate))/(1000*60*60*24);
+  if(diff===1){/* recovery day allowed */}
+  else streak=0;
+}
+
+scoreEl.textContent=`Neural Score: ${score}`;
+streakEl.textContent=`Streak: ${streak} days`;
+
+function logActivity(name){
+  if(logEl.children[0]?.innerText.includes("No activity"))logEl.innerHTML="";
+  score+=10;
+  if(lastDate!==today){
+    streak++;
+    lastDate=today;
+  }
+
+  localStorage.setItem("score",score);
+  localStorage.setItem("streak",streak);
+  localStorage.setItem("lastDate",today);
+
+  scoreEl.textContent=`Neural Score: ${score}`;
+  streakEl.textContent=`Streak: ${streak} days`;
+
+  const item=document.createElement("div");
+  item.className="log-item";
+  item.textContent=`${name} • ${new Date().toLocaleTimeString()}`;
+  logEl.prepend(item);
+}
+
+/* ================= HOME LOGO ANIM ================= */
+document.getElementById("homeLogo").addEventListener("click", function (e) {
+  e.preventDefault();
+  this.style.transform = "scale(0.9)";
+  this.style.opacity = "0";
+  setTimeout(() => {
+    window.location.href = this.getAttribute("href");
+  }, 600);
+});
+
+/* ================= CALM ME NOW (NEW) ================= */
+const calmBtn = document.getElementById("calmBtn");
+const calmOverlay = document.getElementById("calmOverlay");
+const calmClose = document.getElementById("calmClose");
+const calmStatus = document.getElementById("calmStatus");
+
+const affirmationInput = document.getElementById("affirmationInput");
+const speakBtn = document.getElementById("speakBtn");
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
+const playBtn = document.getElementById("playBtn");
+
+// Save typed affirmation locally
+const AFFIRM_KEY = "neurovana_affirmation_text";
+if (affirmationInput) {
+  affirmationInput.value = localStorage.getItem(AFFIRM_KEY) || "";
+  affirmationInput.addEventListener("input", () => {
+    localStorage.setItem(AFFIRM_KEY, affirmationInput.value);
+  });
+}
+
+function openCalm(){
+  calmOverlay.style.display = "flex";
+  calmOverlay.setAttribute("aria-hidden", "false");
+}
+function closeCalm(){
+  calmOverlay.style.display = "none";
+  calmOverlay.setAttribute("aria-hidden", "true");
+}
+
+if (calmBtn) calmBtn.addEventListener("click", openCalm);
+if (calmClose) calmClose.addEventListener("click", closeCalm);
+if (calmOverlay) {
+  calmOverlay.addEventListener("click", (e) => {
+    if (e.target === calmOverlay) closeCalm();
+  });
+}
+
+// Text-to-Speech (system voice)
+function speakAffirmation(text){
+  const t = (text || "").trim();
+  if (!t) {
+    calmStatus.textContent = "Type an affirmation first.";
+    return;
+  }
+  if (!("speechSynthesis" in window)) {
+    calmStatus.textContent = "Text-to-speech is not supported on this browser.";
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+
+  const utter = new SpeechSynthesisUtterance(t);
+  const voices = window.speechSynthesis.getVoices?.() || [];
+  const preferred = voices.find(v => /Google|Siri|Natural|Enhanced/i.test(v.name)) || voices[0];
+  if (preferred) utter.voice = preferred;
+
+  utter.rate = 0.95;
+  utter.pitch = 1.0;
+
+  utter.onstart = () => calmStatus.textContent = "Speaking your affirmation…";
+  utter.onend = () => calmStatus.textContent = "Done. You can record your own voice too.";
+  utter.onerror = () => calmStatus.textContent = "Could not speak. Try again.";
+
+  window.speechSynthesis.speak(utter);
+}
+
+if (speakBtn) speakBtn.addEventListener("click", () => speakAffirmation(affirmationInput.value));
+if ("speechSynthesis" in window) window.speechSynthesis.onvoiceschanged = () => {};
+
+// Voice Recording (MediaRecorder) + Save to IndexedDB
+let mediaRecorder = null;
+let recordedChunks = [];
+let lastRecordingBlob = null;
+
+const DB_NAME = "neurovana_db";
+const STORE = "audio_store";
+const AUDIO_KEY = "affirmation_voice_recording";
+
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveAudioBlob(blob){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(blob, AUDIO_KEY);
+    tx.oncomplete = () => resolve(true);
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadAudioBlob(){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).get(AUDIO_KEY);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function startRecording(){
+  if (!navigator.mediaDevices?.getUserMedia) {
+    calmStatus.textContent = "Recording is not supported on this browser.";
+    return;
+  }
+
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedChunks = [];
+
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    };
+    mediaRecorder.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop());
+
+      lastRecordingBlob = new Blob(recordedChunks, { type: "audio/webm" });
+      await saveAudioBlob(lastRecordingBlob);
+
+      if (playBtn) playBtn.disabled = false;
+      calmStatus.textContent = "Recording saved. Click “Play My Recording”.";
+    };
+
+    mediaRecorder.start();
+    if (recordBtn) recordBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = false;
+    if (playBtn) playBtn.disabled = true;
+    calmStatus.textContent = "Recording… speak your affirmation clearly.";
+  } catch(err){
+    calmStatus.textContent = "Mic access denied or unavailable. Check browser permissions.";
+  }
+}
+
+function stopRecording(){
+  if (mediaRecorder && mediaRecorder.state !== "inactive") {
+    mediaRecorder.stop();
+    if (recordBtn) recordBtn.disabled = false;
+    if (stopBtn) stopBtn.disabled = true;
+  }
+}
+
+async function playRecording(){
+  const blob = lastRecordingBlob || await loadAudioBlob();
+  if (!blob) {
+    calmStatus.textContent = "No recording found yet. Record your voice first.";
+    return;
+  }
+
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  audio.onended = () => URL.revokeObjectURL(url);
+
+  audio.play().then(() => {
+    calmStatus.textContent = "Playing your recording…";
+  }).catch(() => {
+    calmStatus.textContent = "Playback failed. Try again.";
+  });
+}
+
+if (recordBtn) recordBtn.addEventListener("click", startRecording);
+if (stopBtn) stopBtn.addEventListener("click", stopRecording);
+if (playBtn) playBtn.addEventListener("click", playRecording);
+
+// Enable Play if a saved recording exists
+(async () => {
+  try{
+    const existing = await loadAudioBlob();
+    if (existing) {
+      lastRecordingBlob = existing;
+      if (playBtn) playBtn.disabled = false;
+      calmStatus.textContent = "Welcome back — your last recording is ready to play.";
+    }
+  } catch(e){
+    // ignore
+  }
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neurovana • Talk to Vana</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg1:#070514;
+      --bg2:#0b0920;
+      --card:rgba(255,255,255,.07);
+      --card2:rgba(255,255,255,.05);
+      --border:rgba(255,255,255,.12);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --accent:#8B5CF6;
+      --good:#22C55E;
+      --danger:#EF4444;
+      --shadow:0 18px 60px rgba(0,0,0,.52);
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(900px 600px at 20% 15%, rgba(139,92,246,.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 25%, rgba(34,197,94,.14), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(255,255,255,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg2), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    .wrap{ max-width: 980px; margin:0 auto; padding: 18px; }
+
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 16px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand{ display:flex; flex-direction:column; gap:3px; }
+    .brand .t{ font-size:16px; letter-spacing:.2px; }
+    .brand .s{ font-size:12px; color:var(--muted); line-height:1.35; }
+
+    .right{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: transform .08s ease, background .2s ease;
+      font-size:13px;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.10); }
+    .btn:active{ transform: translateY(1px); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .btn.primary{
+      border-color: rgba(139,92,246,.42);
+      background: linear-gradient(180deg, rgba(139,92,246,.30), rgba(139,92,246,.12));
+    }
+    .btn.danger{
+      border-color: rgba(239,68,68,.35);
+      background: linear-gradient(180deg, rgba(239,68,68,.22), rgba(239,68,68,.08));
+    }
+
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      max-width: 200px;
+      overflow:hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .card{
+      margin-top:14px;
+      border:1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--card), var(--card2));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      overflow:hidden;
+    }
+
+    .topNote{
+      padding: 12px 16px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+    .topNote b{ color: var(--text); font-weight:600; }
+
+    .chat{
+      height: 62vh;
+      min-height: 420px;
+      overflow:auto;
+      padding: 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .msg{
+      max-width: 78%;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      border-radius: 16px;
+      padding: 10px 12px;
+      line-height:1.45;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .msg.user{
+      align-self:flex-end;
+      border-color: rgba(139,92,246,.28);
+      background: rgba(139,92,246,.10);
+    }
+    .msg.vana{
+      align-self:flex-start;
+      border-color: rgba(34,197,94,.22);
+      background: rgba(34,197,94,.08);
+    }
+
+    .typing{
+      opacity:.8;
+      font-size:12px;
+      color: var(--muted);
+      padding: 0 16px 12px;
+      display:none;
+    }
+
+    .composer{
+      padding: 12px 16px 16px;
+      border-top:1px solid rgba(255,255,255,.08);
+      display:flex;
+      gap:10px;
+      align-items:flex-end;
+    }
+    textarea{
+      flex:1;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.22);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline:none;
+      font-size:13px;
+      min-height: 44px;
+      max-height: 140px;
+      resize: vertical;
+      line-height:1.45;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="t">Talk to Vana</div>
+        <div class="s">Calm support • journaling-friendly</div>
+      </div>
+      <div class="right">
+        <span class="pill" id="statusPill">Loading…</span>
+        <button class="btn" onclick="location.href='home.html'">← Home</button>
+        <button class="btn danger" id="clearBtn">Clear</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="topNote">
+        <b>Note:</b> Vana is not a doctor or therapist. If you feel in danger, call 911 (US) or 988 (Suicide & Crisis Lifeline).
+      </div>
+
+      <div class="chat" id="chat"></div>
+      <div class="typing" id="typing">Vana is typing…</div>
+
+      <div class="composer">
+        <textarea id="input" placeholder="Tell Vana what's on your mind… (Enter to send, Shift+Enter for new line)"></textarea>
+        <button class="btn primary" id="sendBtn">Send</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://gwrlbqjpjlhdkpgprlxy.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3cmxicWpwamxoZGtwZ3BybHh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc3MjU5MDMsImV4cCI6MjA4MzMwMTkwM30.TYs76jAv9WYevgrZqHg4mrfBQf1AdUNKhBitAUZ6QDg";
+
+    let supabaseClient = null;
+    let user = null;
+
+    const chatEl = document.getElementById("chat");
+    const inputEl = document.getElementById("input");
+    const sendBtn = document.getElementById("sendBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const statusPill = document.getElementById("statusPill");
+    const typingEl = document.getElementById("typing");
+
+    const LS_KEY = "neurovana_vana_chat_v1";
+    let messages = [];
+
+    function setStatus(text){ statusPill.textContent = text; }
+
+    function saveLocal(){
+      localStorage.setItem(LS_KEY, JSON.stringify(messages));
+    }
+
+    function loadLocal(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(raw) messages = JSON.parse(raw);
+      } catch(e){
+        messages = [];
+      }
+    }
+
+    function render(){
+      chatEl.innerHTML = "";
+      for(const m of messages){
+        const div = document.createElement("div");
+        div.className = "msg " + (m.role === "user" ? "user" : "vana");
+        div.textContent = m.content;
+        chatEl.appendChild(div);
+      }
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    function add(role, content){
+      messages.push({ role, content });
+      saveLocal();
+      render();
+    }
+
+    function detectCrisis(text){
+      const t = (text || "").toLowerCase();
+      const crisisWords = [
+        "suicide","kill myself","end my life","self harm","self-harm","hurt myself",
+        "want to die","not worth living","overdose"
+      ];
+      return crisisWords.some(w => t.includes(w));
+    }
+
+    function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function buildVanaReply(userText){
+      if (detectCrisis(userText)) {
+        return `I'm really sorry you're feeling this way — you don't have to carry this alone.
+
+If you might hurt yourself or you're in immediate danger, please call 911 (US) now.
+If you can, call or text 988 (Suicide & Crisis Lifeline) for support right now.
+If you're outside the US, tell me your country and I'll help find the right number.
+
+If you're able, please also reach out to a trusted person and let them know you need support.
+
+Are you safe right this moment?`;
+      }
+
+      const opening = pick([
+        "I hear you. Thank you for trusting me with this.",
+        "I'm here with you. Let's take this one step at a time.",
+        "That sounds heavy. I'm glad you reached out.",
+        "You're not alone in this. We can work through it together."
+      ]);
+
+      const t = (userText || "").toLowerCase();
+      const wantsPlan = t.includes("plan") || t.includes("what should i do") || t.includes("steps") || t.includes("help me");
+      const wantsComfort = t.includes("sad") || t.includes("overwhelmed") || t.includes("anxious") || t.includes("stress") || t.includes("panic");
+      const wantsClarity = t.includes("why") || t.includes("confused") || t.includes("understand") || t.includes("thinking");
+
+      const grounding = pick([
+        `Quick reset (30 seconds):
+• Inhale 4… hold 2… exhale 6 (repeat 3 times)
+• Drop your shoulders and unclench your jaw
+• Name 3 things you can see + 2 things you can feel`,
+        `Let's calm the body first:
+• Hand on chest
+• Breathe in 4, out 6 (x3)
+• Say: "I'm safe in this moment. I can handle the next step."`,
+        `Grounding (5—4—3—2—1):
+5 things you see
+4 things you feel
+3 things you hear
+2 things you smell
+1 thing you taste`
+      ]);
+
+      if (wantsPlan) {
+        return `${opening}
+
+Let's make a simple plan for the next 10 minutes:
+
+1) Name it: in 1 sentence, what's happening?
+2) Control: what's one thing you CAN control right now?
+3) Tiny step: pick one
+   • drink water + sit somewhere comfortable
+   • write 3 bullet points in your journal
+   • do the breathing reset
+   • text one supportive person
+
+${grounding}
+
+What's happening in one sentence?`;
+      }
+
+      if (wantsComfort) {
+        const comfort = pick([
+          "It makes sense you feel this way. Your feelings are valid.",
+          "You're not weak for feeling this. It's your mind asking for support.",
+          "Let's be gentle with you — you're doing the best you can with a lot on your plate."
+        ]);
+
+        return `${opening}
+
+${comfort}
+
+${grounding}
+
+If you're up for it, what triggered this feeling today?`;
+      }
+
+      if (wantsClarity) {
+        return `${opening}
+
+Let's get clarity with 3 quick questions:
+1) What happened (facts only)?
+2) What story is your mind telling about it?
+3) What's a kinder, truer thought you can try right now?
+
+${grounding}
+
+Start with #1: what happened (facts only)?`;
+      }
+
+      const clarifyingQ = pick([
+        "What's the biggest feeling right now (anxious, sad, angry, overwhelmed, numb, other)?",
+        "If you had to name the main problem in one sentence, what would it be?",
+        "What part is hardest right now: your thoughts, your emotions, or the situation itself?",
+        "On a scale of 1—10, how intense does this feel right now?"
+      ]);
+
+      return `${opening}
+
+Before we solve anything, let's steady the moment:
+
+${grounding}
+
+Now tell me:
+${clarifyingQ}
+
+And pick one: comfort, clarity, or a plan.`;
+    }
+
+    async function send(){
+      const text = inputEl.value.trim();
+      if(!text) return;
+
+      add("user", text);
+      inputEl.value = "";
+      typingEl.style.display = "block";
+      setStatus("Vana is thinking…");
+      sendBtn.disabled = true;
+
+      try {
+        // Call vana.php with the user's message
+        const response = await fetch('vana.php', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await response.json();
+        const reply = data.reply || "I'm here with you.";
+        
+        add("assistant", reply);
+        typingEl.style.display = "none";
+        sendBtn.disabled = false;
+        setStatus(user ? `Signed in: ${user.email}` : "Ready");
+
+        // Optional: Log to history if user is signed in
+        if (user && supabaseClient) {
+          try {
+            await supabaseClient
+              .from("activity_history")
+              .insert({ user_id: user.id, activity_type: 'vana_chat' });
+          } catch (err) {
+            console.log("History log failed:", err);
+          }
+        }
+      } catch (error) {
+        console.error("Error calling vana.php:", error);
+        
+        // Fallback to built-in responses if API fails
+        const reply = buildVanaReply(text);
+        add("assistant", reply);
+        typingEl.style.display = "none";
+        sendBtn.disabled = false;
+        setStatus(user ? `Signed in: ${user.email}` : "Ready");
+      }
+    }
+
+    inputEl.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        send();
+      }
+    });
+    sendBtn.addEventListener("click", send);
+
+    clearBtn.addEventListener("click", () => {
+      if(!confirm("Clear this chat?")) return;
+      messages = [];
+      saveLocal();
+      render();
+      add("assistant", "Hi, I'm Vana 🤍 Would you like comfort, clarity, or a simple plan today?");
+    });
+
+    async function refreshSession(){
+      if(!supabaseClient){
+        setStatus("Ready");
+        return;
+      }
+      const { data } = await supabaseClient.auth.getSession();
+      user = data?.session?.user || null;
+      setStatus(user ? `Signed in: ${user.email}` : "Ready");
+    }
+
+    async function init() {
+      if (window.supabase && window.supabase.createClient) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        await refreshSession();
+        supabaseClient.auth.onAuthStateChange(() => refreshSession());
+      } else {
+        setStatus("Ready");
+      }
+
+      loadLocal();
+      render();
+      if(messages.length === 0){
+        add("assistant", "Hi, I'm Vana 🤍 Would you like comfort, clarity, or a simple plan today?");
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
